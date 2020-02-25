@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>网站用户</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="../../../static/layuiadmin/layui/css/layui.css"
+          th:href="@{/layuiadmin/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../../../static/layuiadmin/style/admin.css" th:href="@{/layuiadmin/style/admin.css}"
+          media="all">
+    <style>
+        .layui-form-label {
+            text-align: left !important;
+            width: auto;
+        !important;
+        }
+
+        .layui-input-block {
+            margin-left: 58px !important;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="demoTable">
+            用户名：
+            <div class="layui-inline">
+                <input class="layui-input" name="id" id="demoReload" autocomplete="off" placeholder="用户名">
+            </div>
+            <button class="layui-btn" data-type="reload">搜索</button>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button class="layui-btn" data-type="add"><i class="layui-icon">&#xe608;</i>
+            添加一篇博客
+        </button>
+        </div>
+        <table class="layui-hide" id="test" lay-filter="test"></table>
+        <script type="text/html" id="barDemo">
+            <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+            <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+        </script>
+    </div>
+</div>
+</body>
+<div class="layui-form" lay-filter="layuiadmin-form-useradmin" id="templateForm"
+     style="padding: 20px 0 0 0;display: none;">
+    <form class="layui-form" action="" style="margin-top: 10px;margin-right: 0;margin-left: 5px;" lay-filter="formValue"
+          id="formValue">
+        <div class="layui-form-item">
+            <label class="layui-form-label">文章类型</label>
+            <div class="layui-input-inline">
+                <select name="typeName" lay-verify="required" id="typeName">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">文章标题</label>
+            <div class="layui-input-inline">
+                <input type="text" id="title" name="title" lay-verify="required" placeholder="请输入文章标题" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">发布人</label>
+            <div class="layui-input-inline">
+                <select name="author" lay-verify="required" id="author">
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">浏览量</label>
+            <div class="layui-input-inline">
+                <input type="text" id="view" name="view" lay-verify="required" placeholder="请输入浏览量" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">文章内容</label>
+            <div class="layui-input-inline">
+                <textarea id="content" name="content" lay-verify="required" style="height: 200px;" autocomplete="off" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <input type="hidden" id="createTime" name="createTime">
+    </form>
+</div>
+<script src="../../../static/layuiadmin/layui/layui.js" th:src="@{/layuiadmin/layui/layui.js}"></script>
+<script>
+    layui.config({
+        base: '/layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'useradmin', 'table'], function () {
+        var $ = layui.$;
+        var table = layui.table;
+        table.render({
+            elem: '#test'
+            , url: 'blog/getBlogs'
+            , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+            , defaultToolbar: ['filter', 'exports', 'print']
+            , title: '用户数据表'
+            , cellMinWidth: 100
+            , cols: [
+                [
+                    {type: 'checkbox', fixed: 'left'}
+                    , {field: 'id', title: 'ID', unresize: true, sort: true, align: 'center'}
+                    , {field: 'typeName', title: '博客类型', unresize: true, align: 'center'}
+                    , {field: 'title', title: '标题', unresize: true, align: 'center'}
+                    , {field: 'createTime', title: '发表时间', unresize: true, sort: true, align: 'center'}
+                    , {field: 'changeTime', title: '最后一次修改时间', unresize: true, sort: true, align: 'center'}
+                    , {field: 'author', title: '作者', unresize: true, align: 'center'}
+                    , {title: '操作', toolbar: '#barDemo', width: 180}
+                ]
+            ]
+            , page: true
+            , limits: [20, 30, 50, 100]
+            , limit: 15
+        });
+
+        //监听行工具事件
+        table.on('tool(test)', function (obj) {
+            var data = obj.data;
+            //console.log(obj)
+            if (obj.event === 'del') {
+                layer.confirm('真的删除 ' + data.title + ' 文章么', function (index) {
+                    obj.del();
+                    $.ajax({
+                        url: "blog/deleteBlog/" + data.title,
+                        method: 'POST',
+                        cache: false,
+                        success: function (status) {
+                            if (status === 'SUCCESS') {
+                                //console.log(data)
+                                layer.close(index);
+                                table.reload('test', {//重载表格
+                                    page: {
+                                        curr: 1
+                                    }
+                                })
+                            } else {
+                                layer.alert("删除失败")
+                            }
+                        }
+                    });
+                });
+            } else if (obj.event === 'edit') {
+                location.href = "/updateBlog?title="+data.title+"&id="+data.id;
+            } else if (obj.event === 'detail') {
+                layer.alert("标题为 <p style='font-size: 15px;color:red;'>" + data.title + "</p> 的文章修改成功，修改后数据为{标题为：" + data.title + "，类型：" + data.typeName + "，内容：<p style='font-weight: bolder;'>" + data.content + "</p>，作者：" + data.author + "}");
+            }
+        });
+        var $ = layui.$, active = {
+            reload: function () {
+                var demoReload = $('#demoReload');
+
+                //执行重载
+                table.reload('test', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                    , where: {
+                        searchContent: demoReload.val()
+                    }
+                }, 'data');
+            },
+            add: function () {
+               location.href = "/addBlog";
+            }
+        };
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+    });
+</script>
+</html>

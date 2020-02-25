@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>编辑博客文章</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="../../../static/layuiadmin/layui/css/layui.css"
+          th:href="@{/layuiadmin/layui/css/layui.css}" media="all">
+    <link rel="stylesheet" href="../../../static/layuiadmin/style/admin.css" th:href="@{/layuiadmin/style/admin.css}"
+          media="all">
+    <link rel="stylesheet" href="../../../static/editormd/css/style.css" th:href="@{/editormd/css/style.css}"/>
+    <link rel="stylesheet" href="../../../static/editormd/css/editormd.css" th:href="@{/editormd/css/editormd.css}"/>
+    <style>
+        .layui-form-label {
+            text-align: left !important;
+            width: auto;!important;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-fluid">
+        <div class="layui-card">
+            <div class="layui-form" lay-filter="layuiadmin-form-useradmin" id="templateForm">
+                <form class="layui-form" action="" style="margin-top: 10px;margin-right: 0;margin-left: 5px;" lay-filter="formValue"
+                      id="formValue">
+                    <div class="layui-form-item" style="display: inline-block;">
+                        <label class="layui-form-label">文章类型</label>
+                        <div class="layui-input-inline">
+                            <select name="typeName" lay-verify="required" id="typeName">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="display: inline-block;">
+                        <label class="layui-form-label">文章标题</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="title" name="title" lay-verify="required" placeholder="请输入文章标题" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="display: inline-block;">
+                        <label class="layui-form-label">发布人</label>
+                        <div class="layui-input-inline">
+                            <select name="author" lay-verify="required" id="author">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="display: inline-block;">
+                        <label class="layui-form-label">浏览量</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="view" name="view" lay-verify="required" placeholder="请输入浏览量" autocomplete="off" class="layui-input" >
+                        </div>
+                    </div>
+                    <div id="editorMd">
+                        <textarea id="content" name="content" th:text="${content}">
+                        </textarea>
+                    </div>
+                    <input type="hidden" id="createTime" name="createTime">
+                </form>
+                <div class="demoTable">
+                    <button class="layui-btn" data-type="update">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="../../../static/layuiadmin/layui/layui.js" th:src="@{/layuiadmin/layui/layui.js}"></script>
+<script src="../../../static/editormd/js/jquery.min.js" th:src="@{/editormd/js/jquery.min.js}"></script>
+<script src="../../../static/editormd/js/editormd.min.js" th:src="@{/editormd/js/editormd.min.js}"></script>
+<!-- English -->
+<script src="../../../static/editormd/languages/en.js" th:src="@{/editormd/languages/en.js}"></script>
+<!-- 繁體中文 -->
+<script src="../../../static/editormd/languages/zh-tw.js" th:src="@{/editormd/languages/zh-tw.js}"></script>
+<script type="text/javascript">
+    var testEditor;
+
+    $(function() {
+        testEditor = editormd("editorMd", {
+            width   : "90%",
+            height  : 570,
+            syncScrolling : "single",
+            path    : "/editormd/lib/"
+        });
+
+    });
+</script>
+<script>
+    layui.config({
+        base: '/layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'useradmin', 'form'], function () {
+        var $ = layui.$;
+        var form = layui.form;
+
+
+        //获取url中的参数
+        function getUrlParam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+            var r = window.location.search.substr(1).match(reg); //匹配目标参数
+            return r?decodeURIComponent(r[2]):null;//解决中文乱码
+            //if (r != null) return unescape(r[2]); return null; //返回参数值
+        }
+        //dom结构生成之后
+        $(function () {
+            //动态生成option
+            $.ajax({
+                url:"type/getTypes?page=1&limit=40",
+                method:'GET',
+                cache:false,
+                success:function (data) {
+                    $('#typeName').empty();
+                    //console.log(JSON.parse(data).data);
+                    for(var value in JSON.parse(data).data){
+                        $("#typeName").append("<option value='"+JSON.parse(data).data[value].typeName+"'>"+JSON.parse(data).data[value].typeName+"</option>");
+                        form.render('select');
+                    }
+                }
+            });
+            //动态生成option
+            $.ajax({
+                url:"admin/getAdmins?page=1&limit=60",
+                method:'GET',
+                cache:false,
+                success:function (data) {
+                    $('#author').empty();
+                    //console.log(JSON.parse(data).data);
+                    for(var value in JSON.parse(data).data){
+                        $("#author").append("<option value='"+JSON.parse(data).data[value].adminName+"'>"+JSON.parse(data).data[value].adminName+"</option>");
+                        form.render('select');
+                    }
+                }
+            });
+        });
+        //设置一个定时器，先让select标签加载完再执行赋值函数，不然会出现错误
+        setTimeout(function () {
+            var title = getUrlParam("title");
+            $.ajax({
+                url:'blog/getBlog?title='+title,
+                method:'POST',
+                cache: false,
+                success: function (str) {
+                    var data = JSON.parse(str);
+                    var select1 = 'dd[lay-value=' + data.typeName + ']';
+                    $('#typeName').siblings("div.layui-form-select").find('dl').find(select1).click();
+                    $('#view').val(data.view);
+                    $('#title').val(data.title);
+                    //该方法赋值无法显示在Markdown中，所以用了thymeleaf直接从后端传过来
+                    //$('#content').text(data.content);
+                    $('#createTime').val(data.createTime);
+                    //给select标签赋值
+                    var select2 = 'dd[lay-value=' + data.author + ']';
+                    $('#author').siblings("div.layui-form-select").find('dl').find(select2).click();
+                }
+            });
+        },50);
+        $("#view").blur(function () {
+            var view = $("#view").val();
+            if(isNaN(view) || view === ''){
+                console.log(view);
+                layer.msg("该空不能为空！");
+            }
+        });
+        var $ = layui.$, active = {
+
+            update: function () {
+                var title = getUrlParam("title");
+                var id = getUrlParam("id");
+                var data = $('#formValue').serializeArray();
+                $.ajax({
+                    url: "blog/updateBlog/" + id + "/" + title,
+                    method: 'POST',
+                    data: data,
+                    cache: false,
+                    success: function (status) {
+                        if (status === 'SUCCESS') {
+                            layer.msg("修改成功！");
+                            setTimeout(function () {
+                                location.href = "/blogs";
+                            },200);
+                        } else if (status === 'exist') {
+                            layer.alert("该标题已存在，请更换标题，再提交")
+                        } else {
+                            layer.alert("修改失败")
+                        }
+                    }
+                });
+            }
+        };
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+    });
+</script>
+</html>

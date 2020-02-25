@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.feige.dao.CommentMapper">
+    <insert id="addBlog" parameterType="Blog">
+        insert into `blog`(type_name,title,content,create_time,change_time,author,view) values (#{typeName},#{title},#{content},#{createTime},#{changeTime},#{author},#{view})
+    </insert>
+    <delete id="deleteBlog" parameterType="String">
+        delete from `blog` where title=#{title}
+    </delete>
+    <update id="updateBlog" parameterType="Admin">
+        update `blog` set type_name=#{typeName},title=#{title},content=#{content},create_time=#{createTime},change_time=#{changeTime},author=#{author},view=#{view} where id=#{id}
+    </update>
+    <select id="getComments" resultType="Comment">
+        select c.id id,title,c.content content,parent_id parentId,root_id rootId,
+        username,c.create_time createTime,replier from blog b,comments c,user u
+        where b.id=c.blog_id and u.id=c.user_id and b.title='springboot入门' and
+        c.parent_id is null and c.root_id is null;
+    </select>
+    <select id="getReplys" resultType="Comment" parameterType="Integer">
+        select c.id id,title,c.content content,parent_id parentId,root_id rootId,
+        username,c.create_time createTime,replier from blog b,comments c,user u
+        where b.id=c.blog_id and u.id=c.user_id and b.title='springboot入门' and
+        c.parent_id =#{parentId};
+
+    </select>
+    <select id="getBlog" resultType="Blog" parameterType="String">
+        select id,type_name typeName,title,content,create_time createTime,change_time changeTime,author,view from blog where title=#{title}
+    </select>
+    <select id="getCount" resultType="int" parameterType="map">
+        select count(*) from `blog`
+        <if test="searchContent!=null">
+            where title like "%"#{searchContent}"%" or content like "%"#{searchContent}"%"
+        </if>
+    </select>
+</mapper>
